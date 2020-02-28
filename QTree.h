@@ -1,7 +1,7 @@
 #ifndef QTree_h
 #define QTree_h
 
-#include <SFML/Graphics.hpp>
+#include <X11/Xlib.h>
 
 template<typename T>
 class QTree {
@@ -18,7 +18,7 @@ class QTree {
     };
 
     // SFML Visual Object
-    sf::RectangleShape* rect;
+    // sf::RectangleShape* rect;
    
     // Bounding box 
     double x;
@@ -65,13 +65,13 @@ class QTree {
         objects = new Object[capacity]; 
 
         // Create the visual rectangle representation
-        rect = new sf::RectangleShape();
-        double thickness = 1.0;
-        rect->setPosition(x + thickness, y + thickness);
-        rect->setSize(sf::Vector2f(width - 2.0 * thickness, height - 2.0 * thickness));
-        rect->setOutlineColor(sf::Color::Blue);
-        rect->setOutlineThickness(thickness); 
-        rect->setFillColor(sf::Color(0, 0, 0, 0));
+        // rect = new sf::RectangleShape();
+        // double thickness = 1.0;
+        // rect->setPosition(x + thickness, y + thickness);
+        // rect->setSize(sf::Vector2f(width - 2.0 * thickness, height - 2.0 * thickness));
+        // rect->setOutlineColor(sf::Color::Blue);
+        // rect->setOutlineThickness(thickness); 
+        // rect->setFillColor(sf::Color(0, 0, 0, 0));
     }
 
     // Insert point (object overload)
@@ -107,11 +107,11 @@ class QTree {
     }
     
     // Draw the Quadtree
-    void Draw(sf::RenderWindow* pWindow) {
-        pWindow->draw(*rect);
+    void Draw(Display* pDisplay, Window* pWindow, GC* pGC) {
+        XDrawRectangle(pDisplay, *pWindow, *pGC, x, y, width, height);
         if (hasChildren) {
             for (unsigned int i = 0; i < numNodes; i++) {
-                nodes[i]->Draw(pWindow);
+                nodes[i]->Draw(pDisplay, pWindow, pGC);
             }
         }
     }

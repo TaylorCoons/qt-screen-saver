@@ -1,59 +1,87 @@
-#include <SFML/Graphics.hpp>
+#include <X11/Xlib.h>
+#include <unistd.h>
 #include <string>
+#include <vector>
+
+#include "vroot.h"
 
 #include "QTree.h"
 
 
+struct Point {
+    double x;
+    double y;
+};
+
 int main(int argc, char* argv[])
 {
-    unsigned int numPoints = 0;
-    if (argv[1] == nullptr) {
-        return -1;
-    }
-    try {
-       numPoints = std::stoi(argv[1]); 
-    } catch (std::invalid_argument e) {
-        return -1;        
-    }
-    const unsigned int width = 800;
-    const unsigned int height = 800;
-    sf::CircleShape points[numPoints];
-    for (unsigned int i = 0; i < numPoints; i++) {
-        points[i].setRadius(1);
-        points[i].setFillColor(sf::Color::White);
-        points[i].setPosition(sf::Vector2f(rand() % width, rand() % height)); 
-    } 
+    
+    unsigned int width = 800;
+    unsigned int height = 800;
+       
+    // Open the display
+    Display* pDisplay = XOpenDisplay(getenv("DISPLAY"));
 
-    QTree<sf::CircleShape> qt(0, 0, width, height, 4);
+    // Get a handle to the root window
+    Window root = DefaultRootWindow(pDisplay);
 
-    for (unsigned int i = 0; i < numPoints; i++) {
-        sf::Vector2f pos = points[i].getPosition(); 
-        qt.Insert(pos.x, pos.y, &points[i]);
-    }
+    // Create graphics context
+    GC gc = XCreateGC(pDisplay, root, 0, NULL);
 
-    sf::RenderWindow window(sf::VideoMode(width, height), "SFML works!");
+    Window windowReturn;
+    int x;
+    int y;
+    unsigned int border;
+    unsigned int depth;
+    XGetGeometry(pDisplay, root, &windowReturn, &x, &y, &width, 
+                      &height, &border, &depth);
+    width = width - border - x - 2;
+    height = height - border - y - 2;
 
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
+    QTree<Point> qt(0, 0, width, height, 4);
+    
+    std::vector<Point> points;
+    
+    // Set screen to black
+    XSetForeground(pDisplay, gc, WhitePixelOfScreen(DefaultScreenOfDisplay(pDisplay))); 
 
-        window.clear();
+    while (true) {
+       
+        
+        // Clear screen 
+        // XClearWindow(pDisplay, root);
+        
+        // Add Point
+        Point p;
+        p.x = rand() % width;
+        p.y = rand() % height;
+        points.push_back(p);
+      
+        XColor brush;
+        brush.red = rand() % 0xffff;
+        brush.green = rand() % 0xffff;
+        brush.blue = rand() % 0xffff;
 
+        XSetForeground(pDisplay, gc, brush.pixel); 
+
+        unsigned int last = points.size() - 1;
+        qt.Insert(points[last].x, points[last].y, &points[last]);
+    
         // Draw points
-        for (unsigned int i = 0; i < numPoints; i++) {
-            window.draw(points[i]);
-        }
+        XDrawArc(pDisplay, root, gc, points[last].x, points[last].y, 2, 2, 0, 6.262);
 
         // Draw QTree
-        qt.Draw(&window);
+        qt.Draw(pDisplay, &root, &gc);
 
-        window.display();
-    }
+        // Swap buffers
+        XFlush(pDisplay);
 
+        // Pause
+        usleep(100000); 
+
+    }  
+
+    XCloseDisplay(pDisplay);
+ 
     return 0;
 }
