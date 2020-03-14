@@ -14,12 +14,11 @@
 #include "PointNormLin.h"
 
 const unsigned int numDist = 4;
-const unsigned int maxPoints = 5000;
+const unsigned int maxPoints = 2000;
 
 unsigned long int CreateColor(int red, int green, int blue) {
     return (red << 16) + (green << 8) + blue;
 }
-
 
 int main(int argc, char* argv[]) {
     // Seed random
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
     width = width - border - x - 2;
     height = height - border - y - 2;
 
-    QTree<PointDist::Point> qt(0, 0, width, height, 4);
+    QTree<PointDist::Point> qt(0, 0, width, height, 8);
     
     std::vector<PointDist::Point> points;
     
@@ -68,7 +67,6 @@ int main(int argc, char* argv[]) {
 
         // Choose a random distribution
         unsigned int distro = rand() % numDist;
-        distro = 0;
         switch (distro) {
             case 0:
                 pPointGen = new PointNorm();
@@ -115,7 +113,7 @@ int main(int argc, char* argv[]) {
 
             // Pause
             usleep(100000); 
-        } 
+        }
 
         // Clear quadtree
         qt.Clear();
