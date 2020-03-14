@@ -11,9 +11,10 @@
 #include "PointNorm.h"
 #include "PointUni.h"
 #include "PointHalo.h"
+#include "PointNormLin.h"
 
-const unsigned int numDist = 3;
-const unsigned int maxPoints = 10000;
+const unsigned int numDist = 4;
+const unsigned int maxPoints = 5000;
 
 unsigned long int CreateColor(int red, int green, int blue) {
     return (red << 16) + (green << 8) + blue;
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]) {
 
         // Choose a random distribution
         unsigned int distro = rand() % numDist;
-        distro = 2;
+        distro = 0;
         switch (distro) {
             case 0:
                 pPointGen = new PointNorm();
@@ -77,6 +78,9 @@ int main(int argc, char* argv[]) {
             break;
             case 2:
                 pPointGen = new PointHalo();
+            break;
+            case 3:
+                pPointGen = new PointNormLin();
             break; 
         }
         pPointGen->setXRange(0, width);
