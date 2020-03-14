@@ -3,17 +3,13 @@
 #include <string>
 #include <vector>
 #include <cmath>
-#define PI 3.14159265
 
 #include "vroot.h"
 
 #include "QTree.h"
-
-
-struct Point {
-    double x;
-    double y;
-};
+#include "PointDist.h"
+#include "PointNorm.h"
+#include "PointUni.h"
 
 
 unsigned long int CreateColor(int red, int green, int blue) {
@@ -47,9 +43,9 @@ int main(int argc, char* argv[])
     width = width - border - x - 2;
     height = height - border - y - 2;
 
-    QTree<Point> qt(0, 0, width, height, 4);
+    QTree<PointDist::Point> qt(0, 0, width, height, 4);
     
-    std::vector<Point> points;
+    std::vector<PointDist::Point> points;
     
     // Set screen to black
     XSetForeground(pDisplay, gc, WhitePixelOfScreen(DefaultScreenOfDisplay(pDisplay))); 
@@ -57,31 +53,21 @@ int main(int argc, char* argv[])
     // Create QTree color
     unsigned long int qtColor = CreateColor(167, 30, 130);
 
+    // PointDist* pPointGen = new PointNorm();
+    PointDist* pPointGen = new PointUni();
+    pPointGen->setXRange(0, width);
+    pPointGen->setYRange(0, height);
+
     while (true) {
        
         
         // Clear screen 
         // XClearWindow(pDisplay, root);
-        
-        // Add Point
-        // Point p;
-        // p.x = rand() % width;
-        // p.y = rand() % height;
-        // points.push_back(p);
-
-        // Generate normally distributed point
-        double x = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        double y = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        double xNorm = sqrt(-2.0*log(x))*cos(2.0*PI*y);
-        double yNorm = sqrt(-2.0*log(x))*sin(2.0*PI*y);
-        xNorm = xNorm * static_cast<double>(width) / 10.0 + static_cast<double>(width) / 2.0;
-        yNorm = yNorm * static_cast<double>(height) / 10.0 + static_cast<double>(height) / 2.0;
-        
-        Point p;
-        p.x = static_cast<int>(xNorm);
-        p.y = static_cast<int>(yNorm);
-        points.push_back(p);
-    
+     
+        // Generate point
+        PointDist::Point p = pPointGen->Generate();
+        points.push_back(p);       
+ 
         // Create point color 
         unsigned long int ptColor = CreateColor(rand() % 255, rand() % 255, rand() % 255);
  
@@ -101,8 +87,12 @@ int main(int argc, char* argv[])
 
         // Pause
         usleep(100000); 
+    } 
 
-    }  
+    if (pPointGen != nullptr) {
+        delete pPointGen;
+        pPointGen = nullptr;
+    } 
 
     XCloseDisplay(pDisplay);
  
