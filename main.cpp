@@ -12,13 +12,16 @@
 #include "PointUni.h"
 
 
+const unsigned int numDist = 2;
+
 unsigned long int CreateColor(int red, int green, int blue) {
     return (red << 16) + (green << 8) + blue;
 }
 
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
+    // Seed random
+    srand(time(0));
     
     unsigned int width = 800;
     unsigned int height = 800;
@@ -53,8 +56,18 @@ int main(int argc, char* argv[])
     // Create QTree color
     unsigned long int qtColor = CreateColor(167, 30, 130);
 
-    // PointDist* pPointGen = new PointNorm();
-    PointDist* pPointGen = new PointUni();
+    PointDist* pPointGen;
+
+    // Choose a random distribution
+    unsigned int distro = rand() % numDist;
+    switch (distro) {
+        case 0:
+            pPointGen = new PointNorm();
+        break;
+        case 1:
+            pPointGen = new PointUni();
+        break; 
+    }
     pPointGen->setXRange(0, width);
     pPointGen->setYRange(0, height);
 
