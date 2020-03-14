@@ -64,15 +64,7 @@ class QTree {
         // Create an array of objects
         objects = new Object[capacity]; 
 
-        // Create the visual rectangle representation
-        // rect = new sf::RectangleShape();
-        // double thickness = 1.0;
-        // rect->setPosition(x + thickness, y + thickness);
-        // rect->setSize(sf::Vector2f(width - 2.0 * thickness, height - 2.0 * thickness));
-        // rect->setOutlineColor(sf::Color::Blue);
-        // rect->setOutlineThickness(thickness); 
-        // rect->setFillColor(sf::Color(0, 0, 0, 0));
-    }
+   }
 
     // Insert point (object overload)
     void Insert(Object object) {
@@ -116,12 +108,45 @@ class QTree {
         }
     }
 
-    // Dtor
-    ~QTree() {
+
+    // Delete nodes
+    void Delete() {
+        for (unsigned int i = 0; i < numNodes; i++) {
+            if (nodes[i]->hasChildren) {
+                nodes[i]->Delete();
+            }
+            delete nodes[i];
+            nodes[i] = nullptr;
+        } 
+    }
+
+    // Delete Tree
+    void Clear() {
+        // Delete child nodes
+        Delete();
+ 
+        // Zero size
+        size = 0;
+
+        // Clear children
+        hasChildren = false;
+       
+        DeleteObjects();
+ 
+        // Create an array of objects
+        objects = new Object[capacity];  
+    }
+
+    void DeleteObjects() {
         if (objects != nullptr) {
             delete[] objects;
             objects = nullptr;
         }
+    }
+
+    // Dtor
+    ~QTree() {
+        DeleteObjects();
     }
 
     private:

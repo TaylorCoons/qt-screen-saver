@@ -10,9 +10,10 @@
 #include "PointDist.h"
 #include "PointNorm.h"
 #include "PointUni.h"
+#include "PointHalo.h"
 
-
-const unsigned int numDist = 2;
+const unsigned int numDist = 3;
+const unsigned int maxPoints = 10000;
 
 unsigned long int CreateColor(int red, int green, int blue) {
     return (red << 16) + (green << 8) + blue;
@@ -50,62 +51,80 @@ int main(int argc, char* argv[]) {
     
     std::vector<PointDist::Point> points;
     
-    // Set screen to black
-    XSetForeground(pDisplay, gc, WhitePixelOfScreen(DefaultScreenOfDisplay(pDisplay))); 
-
     // Create QTree color
     unsigned long int qtColor = CreateColor(167, 30, 130);
 
-    PointDist* pPointGen;
-
-    // Choose a random distribution
-    unsigned int distro = rand() % numDist;
-    switch (distro) {
-        case 0:
-            pPointGen = new PointNorm();
-        break;
-        case 1:
-            pPointGen = new PointUni();
-        break; 
-    }
-    pPointGen->setXRange(0, width);
-    pPointGen->setYRange(0, height);
-
     while (true) {
        
-        
-        // Clear screen 
-        // XClearWindow(pDisplay, root);
-     
-        // Generate point
-        PointDist::Point p = pPointGen->Generate();
-        points.push_back(p);       
+        // Clear window
+        XClearWindow(pDisplay, root);       
  
-        // Create point color 
-        unsigned long int ptColor = CreateColor(rand() % 255, rand() % 255, rand() % 255);
- 
-        unsigned int last = points.size() - 1;
-        qt.Insert(points[last].x, points[last].y, &points[last]);
-    
-        // Draw points
-        XSetForeground(pDisplay, gc, ptColor); 
-        XDrawArc(pDisplay, root, gc, points[last].x, points[last].y, 2, 2, 0, 6.262);
-
-        // Draw QTree
-        XSetForeground(pDisplay, gc, qtColor); 
-        qt.Draw(pDisplay, &root, &gc);
-
         // Swap buffers
         XFlush(pDisplay);
 
-        // Pause
-        usleep(100000); 
-    } 
+        // Create point gen
+        PointDist* pPointGen;
 
-    if (pPointGen != nullptr) {
-        delete pPointGen;
-        pPointGen = nullptr;
-    } 
+        // Choose a random distribution
+        unsigned int distro = rand() % numDist;
+        distro = 2;
+        switch (distro) {
+            case 0:
+                pPointGen = new PointNorm();
+            break;
+            case 1:
+                pPointGen = new PointUni();
+            break;
+            case 2:
+                pPointGen = new PointHalo();
+            break; 
+        }
+        pPointGen->setXRange(0, width);
+        pPointGen->setYRange(0, height);
+
+        while (points.size() < maxPoints) {
+           
+            
+            // Clear screen 
+            // XClearWindow(pDisplay, root);
+         
+            // Generate point
+            PointDist::Point p = pPointGen->Generate();
+            points.push_back(p);       
+     
+            // Create point color 
+            unsigned long int ptColor = CreateColor(rand() % 255, rand() % 255, rand() % 255);
+     
+            unsigned int last = points.size() - 1;
+            qt.Insert(points[last].x, points[last].y, &points[last]);
+        
+            // Draw points
+            XSetForeground(pDisplay, gc, ptColor); 
+            XDrawArc(pDisplay, root, gc, points[last].x, points[last].y, 4, 4, 0.0, 23040);
+
+            // Draw QTree
+            XSetForeground(pDisplay, gc, qtColor); 
+            qt.Draw(pDisplay, &root, &gc);
+
+            // Swap buffers
+            XFlush(pDisplay);
+
+            // Pause
+            usleep(100000); 
+        } 
+
+        // Clear quadtree
+        qt.Clear();
+
+        // Clear points
+        points.clear();
+
+        // Delete point gen
+        if (pPointGen != nullptr) {
+            delete pPointGen;
+            pPointGen = nullptr;
+        } 
+    }
 
     XCloseDisplay(pDisplay);
  
